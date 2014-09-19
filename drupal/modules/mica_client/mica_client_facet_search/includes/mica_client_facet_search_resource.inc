@@ -59,7 +59,9 @@ class MicaSearchResource extends MicaClient {
     }
     else {
       $dto_param = $this->dto_filter_construct($url_parm[1], array($parent_child => $type_parent_child), $resource, $spec_dto_params, $size);
-      if (empty(json_decode($dto_param)->filteredQuery->filter)) {
+      dpm($dto_param);
+
+      if (empty($dto_param)) {
         $url = $this->micaUrl . '/' . $resource . $request_param . '/_search?from=' . json_decode($dto_param)->from . '&size=' . (is_null($size) ? $this::SIZE_RESPONSE : $size);
 
         $request = new HttpClientRequest($url, array(

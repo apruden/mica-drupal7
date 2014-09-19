@@ -15,6 +15,7 @@ Protobuf::autoload();
 
 include_once($path_module_protos . '/protos/Mica.php');
 include_once($path_module_protos . '/protos/MicaSearch.php');
+include_once("mica_client_facet_search_query_dto_builders.inc");
 
 /**
  * Class MicaClient
@@ -325,69 +326,28 @@ class MicaClient {
   /**
    * Dto filter construction
    * @param null $request_param url passed parameters,
-   * @param null $parent_child array must be 'parent'=>'<entity parent>' or 'child'=>'<entity parent>',
+   * @param null $hierarchical_relation
    * @param null $type_dto_search must be 'study' or 'dataset',
    * @param null $spec_dto_params specific passed parameters,
    * @param null $size number of results
+   * @internal param null $parent_child array must be 'parent'=>'<entity parent>' or 'child'=>'<entity parent>',
    * @return string
    */
   protected function dto_filter_construct($request_param = NULL, $hierarchical_relation = NULL, $type_dto_search = NULL, $spec_dto_params = NULL, $size = NULL) {
-    $query_dto = new \obiba\mica\QueryDto;
-    $filtered_query_dto = new \obiba\mica\FilteredQueryDto;
-    $bool_filter_query_dto = new \obiba\mica\BoolFilterQueryDto;
+    parse_str($request_param, $parts);
+    $queryDtoBuilder = JoinQueryDtoBuilder::newBuilder(json_decode(urldecode($parts['query'])));
 
-    $parent_filtered_query_dto = new \obiba\mica\FilteredQueryDto;
-    $parent_bool_filter_query_dto = new \obiba\mica\BoolFilterQueryDto;
-
-    //dpm($spec_dto_params);
-    if (!empty($spec_dto_params)) {
-      foreach ($spec_dto_params as $param) {
-        $field[1] = $param['field'];
-        $specific_filter_query = $this->_construct_filtered_query_dto($field, $param['terms']);
-        $bool_filter_query_dto->addFilters($specific_filter_query);
-      }
-
-    }
-
-    //dpm($request_param);
-    if (!empty($request_param)) {
-      foreach ($this->normalize_parameters(urldecode($request_param)) as $field => $term_association) {
-        if ($field != 'page' && $field != 'type') {
-          if (strpos($field, key($hierarchical_relation)) === 0 && !empty($hierarchical_relation)) {
-
-            $parent_child_field = explode(':', urldecode($field));
-            $filter_query_dto_relational = $this->_construct_filtered_query_dto($parent_child_field, $term_association);
-            $parent_query_dto = new \obiba\mica\ParentChildFilterDto;
-            $parent_query_dto->setRelationship(constant("MicaClient::" . key($hierarchical_relation)));
-            $parent_query_dto->setType($hierarchical_relation[key($hierarchical_relation)]);
-            $parent_bool_filter_query_dto->addFilters($filter_query_dto_relational);
-            $parent_filtered_query_dto->setFilter($parent_bool_filter_query_dto);
-            $parent_query_dto->setFilteredQuery($parent_filtered_query_dto);
-            $bool_filter_query_dto->setParentChildFilter($parent_query_dto);
-
-          }
-        }
-        if ($field == 'page') {
-          $pagination_param = explode(',', $term_association[0]);
-          if (array_count_values($pagination_param)[0] == constant("MicaClient::PAGINATE_" . $type_dto_search)) {
-            $query_dto->setFrom($this->pagination_parameters($pagination_param[1], $type_dto_search));
-          }
-        }
-      }
-    }
-
-    $filtered_query_dto->setFilter($bool_filter_query_dto);
-
-    $query_dto->setFilteredQuery($filtered_query_dto);
-
-    $query_dto->setSize(is_null($size) ? $this::SIZE_RESPONSE : $size);
-    $query_dto->detailed = FALSE;
     Protobuf::setDefaultCodec(new Protobuf\Codec\Json);
-    $json_query_encoded = Protobuf::encode($query_dto);
-//    dpm($query_dto);
-    //dpm($json_query_encoded);
-    return $json_query_encoded;
+    $queryDto = //
+      $queryDtoBuilder //
+        ->variableQueryPaging(0, 10) //
+        ->datasetQueryPaging(0, 10) //
+        ->studyQueryPaging(0, 10) //
+        ->networkQueryPaging(0, 10) //
+        ->build(); //
 
+    $json_query_encoded = Protobuf::encode($queryDto);
+    return $json_query_encoded;
   }
 
 
