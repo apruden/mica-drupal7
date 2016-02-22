@@ -68,7 +68,6 @@ function obiba_mica_app_angular_library_alter(&$javascript, $module) {
     $path = drupal_get_path('module', 'jquery_update');
     jquery_update_jquery_replace($javascript, NULL, $path, NULL, '1.10');
   }
-
 }
 
 /**
@@ -511,5 +510,6 @@ function obiba_mica_app_angular_get_search_config() {
           'showNetworksVariablesColumn' => variable_get_value('networks_column_variables'),
         )
       ),
+    'taxonomyOrder' => variable_get_value('mica_taxonomy_order')
   );
 }

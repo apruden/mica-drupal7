@@ -44,6 +44,65 @@ function obiba_mica_variable_info($options) {
     'default' => '',
   );
 
+  $variable['mica_taxonomy_tabs_order'] = array(
+    'title' => t('Taxonomy tabs order'),
+    'description' => t('List of search tabs (case sensitive, comma separated, without blank spaces) determining their order of appearance in the search tabs and classification UI.'),
+    'type' => 'string',
+    'default' => '',
+  );
+
+  $variable['mica_search_tabs_order'] = array(
+    'title' => t('Search tabs order'),
+    'description' => t('List of search tabs (case sensitive, comma separated, without blank spaces) determining their order of appearance in the search tabs and classification UI.'),
+    'type' => 'string',
+    'default' => '',
+  );
+
+  $variable['mica_result_tabs_order'] = array(
+    'title' => t('Result tabs order'),
+    'description' => t('List of result tabs (case sensitive, comma separated, without blank spaces) determining their order of appearance in the search tabs and classification UI.'),
+    'type' => 'string',
+    'default' => '',
+  );
+
+  $variable['mica_result_list_tab_label'] = array(
+    'title' => t('Result list tab label'),
+    'description' => t('List of result tab list label(case sensitive, comma separated, without blank spaces) determining their order of appearance in the search tabs and classification UI.'),
+    'type' => 'string',
+    'default' => '',
+  );
+
+  $variable['mica_result_coverage_tab_label'] = array(
+    'title' => t('Result coverage tab label'),
+    'description' => t('List of result tab coverage label(case sensitive, comma separated, without blank spaces) determining their order of appearance in the search tabs and classification UI.'),
+    'type' => 'string',
+    'default' => '',
+  );
+
+  $variable['mica_result_graphics_tab_label'] = array(
+    'title' => t('Result graphics tab label'),
+    'description' => t('List of result tab graphics label(case sensitive, comma separated, without blank spaces) determining their order of appearance in the search tabs and classification UI.'),
+    'type' => 'string',
+    'default' => '',
+  );
+
+  $variable['mica_result_graphics_order'] = array(
+    'title' => t('Result graphics order'),
+    'description' => t('List of graphics (case sensitive, comma separated, without blank spaces) determining their order of appearance in the search tabs and classification UI.'),
+    'type' => 'string',
+    'default' => '',
+  );
+
+  $variable['mica_taxonomy_order_groups'] = array(
+    'title' => t('Taxonomy groups'),
+    'description' => t('List of taxonomy names (case sensitive, comma separated, without blank spaces) determining their order of appearance in the search and classification UI.'),
+    'type' => 'multiple',
+    'multiple' => array(
+      'name' => t('Name'),
+      'order' => t('Order')
+    )
+  );
+
   $variable['mica_disable_translation'] = array(
     'title' => t('Disable translation'),
     'description' => t('Disable translation in selected pages.'),
@@ -89,6 +148,13 @@ function _obiba_mica_variable_info_mica_server(&$variable) {
     'description' => t('URL of the Mica server. Example: https://mica.example.org:8445'),
     'type' => 'string',
     'default' => 'https://localhost:8445',
+  );
+  $variable['mica_anonymous_toto[group]'] = array(
+    'title' => t('Anonymous user toto'),
+    'description' => t('The toto under which an anonymous user is known by Mica.'),
+    'type' => 'multiple',
+    'repeat' => array('type' => 'string'),
+    'default' => 'anonymous',
   );
   $variable['mica_anonymous_name'] = array(
     'title' => t('Anonymous user name'),

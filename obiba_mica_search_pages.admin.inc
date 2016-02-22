@@ -11,14 +11,14 @@ include_once($path_module_commons . '/includes/obiba_mica_commons_taxonomy_resou
 /**
  * Provides settings pages.
  */
-function obiba_mica_search_pages_admin_settings() {
+function obiba_mica_search_pages_admin_settings($form, &$form_state) {
   $form['search_display_settings'] = array(
     '#type' => 'vertical_tabs',
     '#title' => t('Search page display settings'),
     '#collapsible' => FALSE,
   );
 
-  _obiba_mica_settings_search($form);
+  _obiba_mica_settings_search($form, $form_state);
   _obiba_mica_settings_search_networks_form($form);
   _obiba_mica_settings_search_studies_form($form);
   _obiba_mica_settings_search_datasets_form($form);
@@ -27,11 +27,24 @@ function obiba_mica_search_pages_admin_settings() {
   return system_settings_form($form);
 }
 
+
 /**
  * settings of search page
  * @param $form
  */
-function _obiba_mica_settings_search(&$form) {
+function _obiba_mica_settings_search(&$form, &$form_state) {
+  $add_form_field = function (&$form, $field_name, $info = NULL, $type = 'textfield') {
+    $info = empty($info) ? variable_get_info($field_name) : $info;
+    $form[$field_name] = array(
+      '#type' => $type,
+      '#title' => $info['title'],
+      '#required' => FALSE,
+      '#default_value' => variable_get_value($field_name),
+      '#maxlength' => 255,
+      '#description' => $info['description'],
+    );
+  };
+
   $form['search_display_settings']['page_settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('Search Settings'),
@@ -76,19 +89,100 @@ function _obiba_mica_settings_search(&$form) {
     '#description' => $info['description'],
   );
 
+  $add_form_field($form['search_display_settings']['page_settings'], 'mica_result_list_tab_label');
+  $add_form_field($form['search_display_settings']['page_settings'], 'mica_result_coverage_tab_label');
+  $add_form_field($form['search_display_settings']['page_settings'], 'mica_result_graphics_tab_label');
+  $add_form_field($form['search_display_settings']['page_settings'], 'mica_taxonomy_tabs_order');
+  $add_form_field($form['search_display_settings']['page_settings'], 'mica_search_tabs_order');
+  $add_form_field($form['search_display_settings']['page_settings'], 'mica_result_tabs_order');
+  $add_form_field($form['search_display_settings']['page_settings'], 'mica_result_graphics_order');
+
   $info = variable_get_info('mica_taxonomy_order');
-  $value = variable_get_value('mica_taxonomy_order');
-  $form['search_display_settings']['page_settings']['mica_taxonomy_order'] = array(
-    '#type' => 'textarea',
-    '#title' => $info['title'],
-    '#required' => FALSE,
-    '#default_value' => empty($value) ? _obiba_mica_admin_get_taxonomy_summaries() : $value,
-    '#maxlength' => 255,
-    '#description' => $info['description'],
+  $value = variable_get_value('mica_taxonomy_order_groups');
+  $info_groups = variable_get_info('mica_taxonomy_order_groups');
+
+  $form['search_display_settings']['page_settings']['mica_taxonomy_order_groups'] = array(
+    '#type' => 'fieldset',
+    '#title' => $info_groups['title'],
+    '#prefix' => '<div id="taxonomies-fieldset-wrapper">',
+    '#suffix' => '</div>',
   );
 
+  if (!isset($form_state['num_taxonomies'])) {
+     $form_state['num_taxonomies'] = empty($value) ? 1 : count($value);
+  }
+
+  if (isset($form_state['removed']) && $form_state['removed'] > 0) {
+    $num_taxonomies = count($form_state['input']['mica_taxonomy_order_groups']);
+  } else {
+    $num_taxonomies = $form_state['num_taxonomies'];
+  }
+
+  $form['search_display_settings']['page_settings']['mica_taxonomy_order_groups']['#tree'] = TRUE;
+
+  for ($i = 0; $i < $num_taxonomies; $i++) {
+    if (isset($form_state['removed']) && !is_null($form_state['removed']) && ($form_state['removed'] - 1) == $i) {
+      continue;
+    }
+
+    $form['search_display_settings']['page_settings']['mica_taxonomy_order_groups'][$i]['name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Name'),
+      '#required' => FALSE,
+      '#default_value' => empty($value[$i]) ? '' : $value[$i]['name'],
+      '#maxlength' => 255,
+      '#description' => t('Name'),
+    );
+
+    $form['search_display_settings']['page_settings']['mica_taxonomy_order_groups'][$i]['order'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Order'),
+      '#required' => FALSE,
+      '#default_value' => empty($value[$i]) ? _obiba_mica_admin_get_taxonomy_summaries() : $value[$i]['order'],
+      '#maxlength' => 255,
+      '#description' => $info['description'],
+    );
+
+    if ($form_state['num_taxonomies'] > 1) {
+      $form['search_display_settings']['page_settings']['mica_taxonomy_order_groups'][$i]['mica_taxonomy_group_remove'] = array(
+        '#type' => 'submit',
+        '#value' => t('Remove'),
+        '#submit' => array('ajax_remove_taxonomy'),
+        '#ajax' => array(
+          'callback' => 'ajax_add_taxonomy_callback',
+          'wrapper' => 'taxonomies-fieldset-wrapper',
+        ),
+        '#suffix' => '<br><br>',
+      );
+    }
+  }
+
+  $form['search_display_settings']['page_settings']['mica_taxonomy_order_groups']['mica_taxonomy_group_add'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add group'),
+    '#submit' => array('ajax_add_taxonomy'),
+    '#ajax' => array(
+      'callback' => 'ajax_add_taxonomy_callback',
+      'wrapper' => 'taxonomies-fieldset-wrapper',
+    ),
+  );
 }
 
+function ajax_add_taxonomy_callback($form, $form_state) {
+  return $form['search_display_settings']['page_settings']['mica_taxonomy_order_groups'];
+}
+
+function ajax_add_taxonomy($form, &$form_state) {
+  $form_state['num_taxonomies']++;
+  $form_state['rebuild'] = TRUE;
+}
+
+function ajax_remove_taxonomy($form, &$form_state) {
+  $form_state['num_taxonomies']--;
+  preg_match("/edit\\-mica\\-taxonomy\\-order\\-groups\\-([0-9]+)/", $form_state['triggering_element']['#id'], $matches);
+  $form_state['removed'] = (int)$matches[1];
+  $form_state['rebuild'] = TRUE;
+}
 
 function _obiba_mica_settings_search_networks_form(&$form) {
   $form['search_display_settings']['networks_form'] = array(

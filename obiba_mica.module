@@ -44,6 +44,16 @@ function obiba_mica_menu() {
     'weight' => 1,
   );
 
+  $items['admin/config/obiba-mica/obiba-search-pages-settings/add-taxonomy'] = array(
+    'title' => 'Search pages settings',
+    'description' => 'Configure search pages add taxonomy',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ajax_add_taxonomy'),
+    'access callback' => TRUE,
+    'file' => 'obiba_mica_search_pages.admin.inc',
+    'weight' => 1,
+  );
+
   $items['admin/config/obiba-mica/obiba-content-pages-settings'] = array(
     'title' => 'Content pages settings',
     'description' => 'Configure the catalogues content pages',
@@ -54,6 +64,7 @@ function obiba_mica_menu() {
     'file' => 'obiba_mica_content_pages.admin.inc',
     'weight' => 1,
   );
+
   return $items;
 }
 

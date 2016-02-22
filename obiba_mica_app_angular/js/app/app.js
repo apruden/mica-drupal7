@@ -47,8 +47,8 @@ var mica = angular.module('mica', modules);
 /**
  * Data Access Request related provider configuration
  */
-mica.config(['ngObibaMicaUrlProvider',
-  function (ngObibaMicaUrlProvider) {
+mica.config(['ngObibaMicaSearchProvider', 'ngObibaMicaUrlProvider',
+  function (ngObibaMicaSearchProvider, ngObibaMicaUrlProvider) {
     ngObibaMicaUrlProvider.setUrl('DataAccessFormConfigResource', 'data-access-form/ws');
     ngObibaMicaUrlProvider.setUrl('DataAccessRequestsResource', 'requests/ws');
     ngObibaMicaUrlProvider.setUrl('DataAccessRequestResource', 'request/:id/ws');
@@ -72,6 +72,9 @@ mica.config(['ngObibaMicaUrlProvider',
     ngObibaMicaUrlProvider.setUrl('StudyPopulationsPage', Drupal.settings.basePath + 'mica/study/:study/#population-:population');
     ngObibaMicaUrlProvider.setUrl('DatasetPage', Drupal.settings.basePath + 'mica/:type/:dataset');
 
+    ngObibaMicaSearchProvider.setTaxonomyOrder(Drupal.settings.angularjsApp.obibaSearchOptions.taxonomyOrder.split(',').map(function (t) {
+      return t.trim();
+    }));
   }]);
 
 mica.provider('SessionProxy',
@@ -158,7 +161,6 @@ mica.factory('ErrorTemplate', function () {
 });
 
 mica.factory('ForbiddenDrupalRedirect', function () {
-
   var createDestinationPath = function (path) {
     if (angular.isDefined(path)) {
       var regExp = new RegExp('(view|edit)\/(.*)$');
@@ -181,7 +183,6 @@ mica.factory('ForbiddenDrupalRedirect', function () {
       }
     }
   }
-
 });
 
 /**
@@ -218,17 +219,17 @@ mica.service('AttributeService',
   function () {
     return {
       getAttributes: function (container, names) {
-        if (! container && ! container.attributes && ! names) {
+        if (!container && !container.attributes && !names) {
           return null;
         }
         return container.attributes.filter(
           function (attribute) {
-            return names.indexOf(attribute.name) !== - 1;
+            return names.indexOf(attribute.name) !== -1;
           });
       },
 
       getValue: function (attribute) {
-        if (! attribute) {
+        if (!attribute) {
           return null;
         }
         var value = attribute.values.filter(
@@ -245,7 +246,7 @@ mica.service('LocalizedStringService',
   function () {
     return {
       getValue: function (localized) {
-        if (! localized) {
+        if (!localized) {
           return null;
         }
         var value = localized.filter(
