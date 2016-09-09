@@ -36,7 +36,7 @@ class MicaPersonsResource extends MicaClient {
     $params .= empty($sort) ? '' : '&sort=' . $sort;
     $params .= empty($order) ? '' : '&order=' . $order;
     $params .= empty($query) ? '' : '&query=' . $query;
-    $url_studies_person = $this->micaUrl . '/persons/_search?' . $params;
+    $url_studies_person = $this->micaUrl . '/persons/_search?' . rawurlencode($params);
     $request = new HttpClientRequest($url_studies_person, array(
       'method' => HttpClientRequest::METHOD_GET,
       'headers' => $this->authorizationHeader(array(
@@ -77,7 +77,7 @@ class MicaPersonsResource extends MicaClient {
     $params .= empty($sort) ? '' : '&sort=' . $sort;
     $params .= empty($order) ? '' : '&order=' . $order;
     $params .= empty($query) ? '' : '&query=' . $query;
-    $url_studies_person = $this->micaUrl . '/persons/_search?' . $params;
+    $url_studies_person = $this->micaUrl . '/persons/_search?' . rawurlencode($params);
     $request = new HttpClientRequest($url_studies_person, array(
       'method' => HttpClientRequest::METHOD_GET,
       'headers' => $this->authorizationHeader(array(
